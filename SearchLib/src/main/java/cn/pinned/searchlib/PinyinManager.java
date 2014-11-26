@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import cn.pinned.searchlib.tools.DebugLog;
+
 /**
  * Created by knero on 11/26/2014.
  */
@@ -33,6 +35,7 @@ public class PinyinManager {
         synchronized (translateTab) {
             // 查找是否已经有解析过这个字符串成Pinyin，如果有直接返回解析后的结果
             translate = translateTab.get(word);
+            DebugLog.d("translate is null:" + (translate == null));
             if (translate != null) {
                 return translate;
             } // end if
@@ -41,8 +44,9 @@ public class PinyinManager {
                 translate = mergeWord(translate, translate(word.charAt(i)));
             }
             translateTab.put(word, translate);
+            return translate;
         }
-        return null;
+
     }
 
     private Set<String> translate(char word) {
@@ -58,12 +62,13 @@ public class PinyinManager {
         } catch (BadHanyuPinyinOutputFormatCombination ex) {
             ex.printStackTrace();
         }
+        DebugLog.d("translate word:" + word +  " " + ret);
         return ret;
     }
 
     private Set<String> mergeWord(Set<String> a, Set<String> b) {
         Set<String> res = new HashSet<String>();
-        if (a == null) {
+        if (a == null || a.size() <= 0) {
             for (String pinyin : b) {
                 res.add(pinyin);
             }

@@ -6,15 +6,22 @@ import android.util.Log;
 
 import java.util.Set;
 
+import cn.pinned.searchlib.tools.DebugLog;
+
 /**
  * Created by knero on 11/26/2014.
  */
 public class PinyinManagerTest extends AndroidTestCase {
     public void testGetPinYin() {
+        DebugLog.DEBUG = true;
         PinyinManager manager = new PinyinManager();
         Set<String> pinyins = manager.getPinYin("罗昭成");
+        if (pinyins == null || pinyins.size() <= 0) {
+            DebugLog.d("end");
+            return;
+        }
         for (String pinyin : pinyins) {
-            Log.d("Test",pinyin);
+            DebugLog.d(pinyin);
         }
     }
 }
