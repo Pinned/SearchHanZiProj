@@ -2,35 +2,81 @@ package cn.pinned.searchhanziproj;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import cn.pinned.searchlib.SearchManager;
+import cn.pinned.searchlib.tools.DebugLog;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SearchManager.SearchListener{
+
+    private Set<String> mCitys;
+
+    private EditText mInput;
+    private TextView mShow;
+    private SearchManager mSearchManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        this.initData();
+        this.initView();
+        this.initListener();
     }
 
+    private void initListener() {
+        this.mInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String key = mInput.getText().toString();
+                DebugLog.d("key:" + key);
+                mSearchManager.doSearch(key);
+            }
+        });
+    }
+
+    private void initView() {
+        this.setContentView(R.layout.activity_main);
+        this.mInput = (EditText) this.findViewById(R.id.input);
+        this.mShow = (TextView) this.findViewById(R.id.show);
+
+        this.mSearchManager = new SearchManager(mCitys);
+        this.mSearchManager.setOnSearchListener(this);
+    }
+
+    private void initData() {
+        this.mCitys = new HashSet<String>();
+        String cityStr = getString(R.string.citys);
+        this.mCitys.addAll(Arrays.asList(cityStr.split("、")));
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+    public void onSearch(Set<String> values) {
+        StringBuffer sb = new StringBuffer();
+        for (String value : values) {
+            sb.append(value);
+            sb.append("\n");
         }
-        return super.onOptionsItemSelected(item);
+        this.mShow.setText(sb.toString());
     }
 }

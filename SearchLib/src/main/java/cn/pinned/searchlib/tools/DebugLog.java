@@ -11,8 +11,8 @@ public class DebugLog{
     static String methodName;
     static int lineNumber;
 
-    public static boolean DEBUG = BuildConfig.DEBUG;
-
+//    public static boolean DEBUG = BuildConfig.DEBUG;
+    public static boolean DEBUG = true;
     private DebugLog(){
         /* Protect from instantiations */
     }
