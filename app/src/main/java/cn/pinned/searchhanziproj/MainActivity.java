@@ -25,6 +25,7 @@ public class MainActivity extends Activity implements SearchManager.SearchListen
     private EditText mInput;
     private TextView mShow;
     private SearchManager mSearchManager;
+    private long startTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +51,9 @@ public class MainActivity extends Activity implements SearchManager.SearchListen
             public void afterTextChanged(Editable editable) {
                 String key = mInput.getText().toString();
                 DebugLog.d("key:" + key);
+                startTime = System.currentTimeMillis();
                 mSearchManager.doSearch(key);
+
             }
         });
     }
@@ -68,10 +71,12 @@ public class MainActivity extends Activity implements SearchManager.SearchListen
         this.mCitys = new HashSet<String>();
         String cityStr = getString(R.string.citys);
         this.mCitys.addAll(Arrays.asList(cityStr.split("、")));
+        DebugLog.d("citys length:" + this.mCitys.size());
     }
 
     @Override
     public void onSearch(Set<String> values) {
+        DebugLog.d("Search time:" + (System.currentTimeMillis() - startTime));
         StringBuffer sb = new StringBuffer();
         for (String value : values) {
             sb.append(value);

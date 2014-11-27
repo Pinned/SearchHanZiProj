@@ -19,27 +19,27 @@ import cn.pinned.searchlib.tools.DebugLog;
  */
 public class PinyinManager {
 
-    private Map<String, Set<String>> translateTab = null;
+    private Map<String, Set<PinyinModel>> translateTab = null;
     private HanyuPinyinOutputFormat outputFormat = null;
 
     public PinyinManager() {
-        translateTab = new HashMap<String, Set<String>>();
+        translateTab = new HashMap<String, Set<PinyinModel>>();
         outputFormat = new HanyuPinyinOutputFormat();
         outputFormat.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
         outputFormat.setVCharType(HanyuPinyinVCharType.WITH_V);
         outputFormat.setCaseType(HanyuPinyinCaseType.LOWERCASE);
     }
 
-    public Set<String> getPinYin(String word) {
-        Set<String> translate = null;
+
+    public Set<PinyinModel> getPinYin(String word) {
+        Set<PinyinModel> translate = null;
         synchronized (translateTab) {
             // 查找是否已经有解析过这个字符串成Pinyin，如果有直接返回解析后的结果
             translate = translateTab.get(word);
-            DebugLog.d("translate is null:" + (translate == null));
             if (translate != null) {
                 return translate;
             } // end if
-            translate = new HashSet<String>();
+            translate = new HashSet<PinyinModel>();
             for (int i = 0; i < word.length(); i++) {
                 translate = mergeWord(translate, translate(word.charAt(i)));
             }
@@ -49,33 +49,32 @@ public class PinyinManager {
 
     }
 
-    private Set<String> translate(char word) {
-        Set<String> ret = new HashSet<String>();
+    private Set<PinyinModel> translate(char word) {
+        Set<PinyinModel> ret = new HashSet<PinyinModel>();
         try {
             String [] pinyins =  PinyinHelper.toHanyuPinyinStringArray(word, outputFormat);
-            ret.add(String.valueOf(word));
+            ret.add(new PinyinModel(String.valueOf(word)));
             if (pinyins != null) {
                 for (String pinyin : pinyins) {
-                    ret.add(pinyin);
+                    ret.add(new PinyinModel(pinyin));
                 }
             }
         } catch (BadHanyuPinyinOutputFormatCombination ex) {
             ex.printStackTrace();
         }
-        DebugLog.d("translate word:" + word +  " " + ret);
         return ret;
     }
 
-    private Set<String> mergeWord(Set<String> a, Set<String> b) {
-        Set<String> res = new HashSet<String>();
+    private Set<PinyinModel> mergeWord(Set<PinyinModel> a, Set<PinyinModel> b) {
+        Set<PinyinModel> res = new HashSet<PinyinModel>();
         if (a == null || a.size() <= 0) {
-            for (String pinyin : b) {
+            for (PinyinModel pinyin : b) {
                 res.add(pinyin);
             }
         } else {
-            for (String prefix : a) {
-                for (String pinyin : b) {
-                    res.add(prefix + pinyin);
+            for (PinyinModel prefix : a) {
+                for (PinyinModel pinyin : b) {
+                    res.add(new PinyinModel(prefix, pinyin));
                 }
             }
         }

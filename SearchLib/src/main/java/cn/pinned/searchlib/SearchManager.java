@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import cn.pinned.searchlib.tools.DebugLog;
@@ -35,7 +36,15 @@ public class SearchManager {
     }
 
     public void doSearch(String key) {
-        // TODO 启动线程进行查找操作
+        if (key.isEmpty()) {
+            if (mSearchTask != null) {
+                mSearchTask.cancel(true);
+            }
+        }
+        if (mSearchTask != null) {
+            mSearchTask.cancel(true);
+        }
+        // 启动线程进行查找操作
         mSearchTask = new SearchTask();
         mSearchTask.execute(key);
     }
@@ -50,13 +59,16 @@ public class SearchManager {
             Set<String> notMatchList = new HashSet<String>();
             Set<String> matchList = new HashSet<String>();
             for(String item : mSearchedList) {
+                if (isCancelled()) {
+                    break;
+                }
                 if (match(searchKey, item)) {
                     matchList.add(item);
                 } else {
                     notMatchList.add(item);
                 }
             }
-            mSearchedList.removeAll(notMatchList);
+//            mSearchedList.removeAll(notMatchList);
             publishProgress(matchList);
             return null;
         }
@@ -72,16 +84,47 @@ public class SearchManager {
             if (doSimpleMatch(item, searchKey)) {
                 return true;
             } // end if
-            Set<String> pinyins = mPinyinManager.getPinYin(item);
+            Set<PinyinModel> pinyins = mPinyinManager.getPinYin(item);
             if (pinyins == null || pinyins.size() <= 0) {
                 return false;
             }
-            for(String pinyin : pinyins) {
+            for(PinyinModel pinyin : pinyins) {
+                if (this.isCancelled()) {
+                    break;
+                }
                 if (doSimpleMatch(pinyin, searchKey)) {
                     return true;
                 }
             }
             return false;
+        }
+
+        private boolean doSimpleMatch(PinyinModel pinyinModel, String key) {
+            List<String> pinyinData = pinyinModel.getDatas();
+            int index = 0;
+            int wordIndex = 0;
+            int keyIndex = 0;
+            while (keyIndex < key.length() && index < pinyinData.size()){
+                if (this.isCancelled()) {
+                    break;
+                } // end if
+                String pinyin = pinyinData.get(index);
+                wordIndex = 0;
+                while (wordIndex < pinyin.length() && keyIndex < key.length()) {
+                    if (this.isCancelled()) {
+                        break;
+                    } // end if
+                    if (pinyin.charAt(wordIndex) == key.charAt(keyIndex)) {
+                        wordIndex ++;
+                        keyIndex ++;
+                    } else {
+                        index ++;
+                        break;
+                    }
+                }
+
+            }
+            return keyIndex == key.length();
         }
 
         private boolean doSimpleMatch(String word, String key) {
